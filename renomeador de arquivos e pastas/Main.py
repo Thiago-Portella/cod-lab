@@ -94,15 +94,16 @@ class TelaPrincipalArquivo(wx.Frame):
         dialog.Destroy()
 
     def renomear(self, event):
-        autor = self.entry_autor.GetValue()
-        serie = self.entry_serie.GetValue()
-        titulo = self.entry_titulo.GetValue()
+        autor = self.entry_autor.GetValue().title()
+        serie = self.entry_serie.GetValue().title()
+        titulo = self.entry_titulo.GetValue().title()
 
-        if self.caminho and autor and serie and titulo:
+        if self.caminho and autor and titulo:
             novo_nome = f"{autor} - ({serie}) - {titulo}"
             extensao = os.path.splitext(self.caminho)[1]
             os.rename(self.caminho, os.path.join(os.path.dirname(self.caminho), novo_nome + extensao))
-            self.Destroy()
+            self.Hide()
+            EscolhaTipo().Show()
         else:
             print("Por favor, preencha todos os campos.")
 
@@ -163,14 +164,15 @@ class TelaPrincipalPasta(wx.Frame):
         dialog.Destroy()
 
     def renomear(self, event):
-        autor = self.entry_autor.GetValue()
-        serie = self.entry_serie.GetValue()
-        titulo = self.entry_titulo.GetValue()
+        autor = self.entry_autor.GetValue().title()
+        serie = self.entry_serie.GetValue().title()
+        titulo = self.entry_titulo.GetValue().title()
 
-        if self.caminho and autor and serie and titulo:
+        if self.caminho and autor and titulo:
             novo_nome = f"{autor} - ({serie}) - {titulo}"
             os.rename(self.caminho, os.path.join(os.path.dirname(self.caminho), novo_nome))
-            self.Destroy()
+            self.Hide()
+            EscolhaTipo().Show()
         else:
             print("Por favor, preencha todos os campos.")
 
