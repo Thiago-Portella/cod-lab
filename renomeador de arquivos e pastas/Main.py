@@ -1,5 +1,5 @@
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QFileDialog, QVBoxLayout, QComboBox
+import wx
 
 class Livro:
     def __init__(self, tipo, caminho, autor, serie, titulo):
@@ -10,73 +10,78 @@ class Livro:
         self.titulo = titulo
 
 def obter_caminho():
-    caminho, _ = QFileDialog.getOpenFileName(None, "Selecione o arquivo ou pasta")
+    app = wx.App(False)
+    dialog = wx.FileDialog(None, "Selecione o arquivo ou pasta", wildcard="All Files (*.*)|*.*", style=wx.FD_OPEN)
+    if dialog.ShowModal() == wx.ID_OK:
+        caminho = dialog.GetPath()
+    else:
+        caminho = ""
+    dialog.Destroy()
     return caminho
 
-class RenomeadorApp(QWidget):
+class RenomeadorApp(wx.Frame):
     def __init__(self):
-        super().__init__()
+        super().__init__(None, title='Renomeador de Arquivos')
 
         self.lista_de_informacoes = []
 
         self.initUI()
+        self.Show()
 
     def initUI(self):
-        layout = QVBoxLayout()
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Campos de entrada
-        self.label_caminho = QLabel("Caminho:")
-        self.entry_caminho = QLineEdit()
-        self.entry_caminho.setPlaceholderText("Insira o caminho ou clique em 'Procurar'")
-        self.entry_caminho.setDisabled(True)  # Desabilita a edição manual
+        self.label_caminho = wx.StaticText(panel, label="Caminho:")
+        self.entry_caminho = wx.TextCtrl(panel, style=wx.TE_READONLY)
+        self.entry_caminho.SetHint("Insira o caminho ou clique em 'Procurar'")
 
-        self.label_autor = QLabel("Autor:")
-        self.entry_autor = QLineEdit()
+        self.label_autor = wx.StaticText(panel, label="Autor:")
+        self.entry_autor = wx.TextCtrl(panel)
 
-        self.label_serie = QLabel("Série:")
-        self.entry_serie = QLineEdit()
+        self.label_serie = wx.StaticText(panel, label="Série:")
+        self.entry_serie = wx.TextCtrl(panel)
 
-        self.label_titulo = QLabel("Título:")
-        self.entry_titulo = QLineEdit()
+        self.label_titulo = wx.StaticText(panel, label="Título:")
+        self.entry_titulo = wx.TextCtrl(panel)
 
-        self.label_tipo = QLabel("Tipo:")
-        self.dropdown_tipo = QComboBox()
-        self.dropdown_tipo.addItems(["Arquivo", "Pasta"])
+        self.label_tipo = wx.StaticText(panel, label="Tipo:")
+        self.dropdown_tipo = wx.Choice(panel, choices=["Arquivo", "Pasta"])
 
         # Botões
-        self.btn_adicionar = QPushButton("Adicionar Livro")
-        self.btn_adicionar.clicked.connect(self.adicionar_livro)
+        self.btn_adicionar = wx.Button(panel, label="Adicionar Livro")
+        self.btn_adicionar.Bind(wx.EVT_BUTTON, self.adicionar_livro)
 
-        self.btn_procurar = QPushButton("Procurar")
-        self.btn_procurar.clicked.connect(self.procurar_caminho)
+        self.btn_procurar = wx.Button(panel, label="Procurar")
+        self.btn_procurar.Bind(wx.EVT_BUTTON, self.procurar_caminho)
 
-        self.btn_renomear = QPushButton("Renomear Arquivos")
-        self.btn_renomear.clicked.connect(self.renomear_arquivos)
+        self.btn_renomear = wx.Button(panel, label="Renomear Arquivos")
+        self.btn_renomear.Bind(wx.EVT_BUTTON, self.renomear_arquivos)
 
-        # Adiciona widgets ao layout
-        layout.addWidget(self.label_caminho)
-        layout.addWidget(self.entry_caminho)
-        layout.addWidget(self.btn_procurar)
-        layout.addWidget(self.label_autor)
-        layout.addWidget(self.entry_autor)
-        layout.addWidget(self.label_serie)
-        layout.addWidget(self.entry_serie)
-        layout.addWidget(self.label_titulo)
-        layout.addWidget(self.entry_titulo)
-        layout.addWidget(self.label_tipo)
-        layout.addWidget(self.dropdown_tipo)
-        layout.addWidget(self.btn_adicionar)
-        layout.addWidget(self.btn_renomear)
+        # Adiciona widgets ao sizer
+        sizer.Add(self.label_caminho, 0, wx.ALL, 5)
+        sizer.Add(self.entry_caminho, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(self.btn_procurar, 0, wx.ALL, 5)
+        sizer.Add(self.label_autor, 0, wx.ALL, 5)
+        sizer.Add(self.entry_autor, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(self.label_serie, 0, wx.ALL, 5)
+        sizer.Add(self.entry_serie, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(self.label_titulo, 0, wx.ALL, 5)
+        sizer.Add(self.entry_titulo, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(self.label_tipo, 0, wx.ALL, 5)
+        sizer.Add(self.dropdown_tipo, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(self.btn_adicionar, 0, wx.ALL, 5)
+        sizer.Add(self.btn_renomear, 0, wx.ALL, 5)
 
-        self.setLayout(layout)
-        self.setWindowTitle('Renomeador de Arquivos')
+        panel.SetSizer(sizer)
 
-    def adicionar_livro(self):
-        tipo = self.dropdown_tipo.currentText()
-        caminho = self.entry_caminho.text()
-        autor = self.entry_autor.text()
-        serie = self.entry_serie.text()
-        titulo = self.entry_titulo.text()
+    def adicionar_livro(self, event):
+        tipo = self.dropdown_tipo.GetStringSelection()
+        caminho = self.entry_caminho.GetValue()
+        autor = self.entry_autor.GetValue()
+        serie = self.entry_serie.GetValue()
+        titulo = self.entry_titulo.GetValue()
 
         if caminho and autor and serie and titulo:
             livro = Livro(tipo, caminho, autor, serie, titulo)
@@ -85,18 +90,18 @@ class RenomeadorApp(QWidget):
         else:
             print("Por favor, preencha todos os campos.")
 
-    def procurar_caminho(self):
+    def procurar_caminho(self, event):
         caminho = obter_caminho()
         if caminho:
-            self.entry_caminho.setText(caminho)
+            self.entry_caminho.SetValue(caminho)
 
     def limpar_campos(self):
-        self.entry_caminho.clear()
-        self.entry_autor.clear()
-        self.entry_serie.clear()
-        self.entry_titulo.clear()
+        self.entry_caminho.Clear()
+        self.entry_autor.Clear()
+        self.entry_serie.Clear()
+        self.entry_titulo.Clear()
 
-    def renomear_arquivos(self):
+    def renomear_arquivos(self, event):
         for livro in self.lista_de_informacoes:
             tipo = livro.tipo
             caminho = livro.caminho
@@ -115,7 +120,6 @@ class RenomeadorApp(QWidget):
                 print("Tipo inválido. Por favor, escolha 'pasta' ou 'arquivo'.")
 
 if __name__ == '__main__':
-    app = QApplication([])
-    renomeador_app = RenomeadorApp()
-    renomeador_app.show()
-    app.exec_()
+    app = wx.App(False)
+    frame = RenomeadorApp()
+    app.MainLoop()
